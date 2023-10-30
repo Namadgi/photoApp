@@ -107,7 +107,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
 
   Future getImages() async {
     final pickedFile = await picker.pickMultiImage(
-        imageQuality: 100, maxHeight: 1800, maxWidth: 1600);
+        imageQuality: 80, maxHeight: 1800, maxWidth: 1600);
 
     xfilePick.clear();
     xfilePick.addAll(pickedFile);
