@@ -1,16 +1,24 @@
+
 # flutter_photo
 
-A new Flutter project.
+A flutter project.
 
-## Getting Started
+## Introduction
 
-This project is a starting point for a Flutter application.
+flutter_photo is an application built to prove the concept of image quality in flutter apps.
+It enables a user to either upload photos from phone gallery or use camera to capture photos, 
+it then improves the photo quality by using flutter packages to enhance photo quality.
 
-A few resources to get you started if this is your first Flutter project:
+## Technologies and reference documents links
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+A few resources/packages used in the application:
+ - [The image package](https://pub.dev/packages/image)
+ Allows display of images on the application
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+ - [image picker package](https://pub.dev/packages/image_picker)
+ helps the user pick images from gallery and camera and store in application, also help set 
+ the image quality.
+
+ - [themed package](https://pub.dev/packages/themed)
+ Help with setting the saturation intensity, hue and brightness of photos.
+
