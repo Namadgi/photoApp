@@ -146,26 +146,34 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   }
 
   Future<void> getImagesFromGallery() async {
-    XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    try {
+      XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+      );
 
-    if (pickedFile == null) return;
+      if (pickedFile == null) return;
 
-    Uint8List imageBytes = await pickedFile.readAsBytes();
+      Uint8List imageBytes = await pickedFile.readAsBytes();
 
-    adapter.storeImage(imageBytes);
-    _init();
+      adapter.storeImage(imageBytes);
+      _init();
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   Future<void> getImagesFromCamera() async {
-    XFile? pickedCameraFile = await picker.pickImage(
-      source: ImageSource.camera,
-    );
-    if (pickedCameraFile == null) return;
-    Uint8List imageBytes = await pickedCameraFile.readAsBytes();
+    try {
+      XFile? pickedCameraFile = await picker.pickImage(
+        source: ImageSource.camera,
+      );
+      if (pickedCameraFile == null) return;
+      Uint8List imageBytes = await pickedCameraFile.readAsBytes();
 
-    adapter.storeImage(imageBytes);
-    _init();
+      adapter.storeImage(imageBytes);
+      _init();
+    } catch (e) {
+      print(e.toString());
+    }
   }
 }
