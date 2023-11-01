@@ -26,11 +26,15 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   }
 
   void _init() async {
-    List<Uint8List> imageList = await adapter.getImages();
+    try {
+      List<Uint8List> imageList = await adapter.getImages();
 
-    setState(() {
-      _selectedImages = imageList;
-    });
+      setState(() {
+        _selectedImages = imageList;
+      });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   @override

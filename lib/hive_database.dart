@@ -10,7 +10,7 @@ class HiveService extends DatabaseAdapter {
     _init();
   }
 
-  void _init() async {
+  Future _init() async {
     box = await Hive.openBox('imageBox');
   }
 
@@ -31,33 +31,3 @@ class HiveService extends DatabaseAdapter {
     await box.put("images", images);
   }
 }
-
-// class HiveService extends DatabaseAdapter {
-//   @override
-//   Future<List<Uint8List>> getImages() async {
-//     var box = await Hive.openBox('imageBox');
-
-//     List<dynamic> result = box.get('images') ?? [];
-
-//     return result.cast<Uint8List>();
-//   }
-
-//   @override
-//   Future storeImage(Uint8List imageBytes) async {
-//     List<Uint8List> images = [];
-
-//     var box = await Hive.openBox('imageBox');
-
-//     List<dynamic>? allImages = box.get('images');
-
-//     if (allImages != null) {
-//       images.addAll(allImages.cast<Uint8List>());
-//     }
-
-//     images.add(imageBytes);
-
-//     var value = await box.put("images", images);
-
-//     return value;
-//   }
-// }
