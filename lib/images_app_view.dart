@@ -1,6 +1,7 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_photo/database_adapter.dart';
+import 'package:flutter_photo/hive_database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:themed/themed.dart';
 
@@ -12,12 +13,26 @@ class MultipleImageSelector extends StatefulWidget {
 }
 
 class _MultipleImageSelectorState extends State<MultipleImageSelector> {
-  List<File> selectedImages = [];
+  List<Uint8List> _selectedImages = [];
   final picker = ImagePicker();
   List<XFile> xfilePick = [];
 
-  bool imageSelected = false;
-  double brighteness = 0.3;
+  DatabaseAdapter adapter = HiveService();
+
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  init() async {
+    List<Uint8List> imageList = await adapter.getImages();
+
+    setState(() {
+      _selectedImages = imageList;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,17 +40,6 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
         title: const Text('Photo Improver'),
         backgroundColor: Colors.purpleAccent,
       ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.purple,
-          onPressed: () {
-            setState(() {
-              brighteness + 0.1;
-            });
-          },
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-          )),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +52,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
                   backgroundColor: MaterialStateProperty.all(Colors.purple)),
               child: const Text('Select Image from Gallery '),
               onPressed: () {
-                getImages();
+                getImagesFromGallery();
               },
             ),
             const SizedBox(
@@ -72,11 +76,10 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
             ),
             Expanded(
               child: SizedBox(
-                // width: 300.0,
-                child: selectedImages.isEmpty
+                child: _selectedImages.isEmpty
                     ? const Center(child: Text('No photos selected'))
                     : ListView.builder(
-                        itemCount: selectedImages.length,
+                        itemCount: _selectedImages.length,
                         scrollDirection: Axis.vertical,
                         itemBuilder: (BuildContext context, int index) {
                           return Column(
@@ -106,19 +109,19 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
                                   SizedBox(
                                     height: 200,
                                     width: 200,
-                                    child: Image.file(
-                                      selectedImages[index],
+                                    child: Image.memory(
+                                      _selectedImages[index],
                                     ),
                                   ),
                                   SizedBox(
                                     height: 200,
                                     width: 200,
                                     child: ChangeColors(
-                                      hue: 0.1,
+                                      hue: 0,
                                       brightness: 0.2,
                                       saturation: 0.2,
-                                      child: Image.file(
-                                        selectedImages[index],
+                                      child: Image.memory(
+                                        _selectedImages[index],
                                         colorBlendMode: BlendMode.clear,
                                         filterQuality: FilterQuality.high,
                                       ),
@@ -138,53 +141,26 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
     );
   }
 
-  Future getImages() async {
-    final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 50,
-        maxHeight: 800,
-        maxWidth: 600);
-
-    xfilePick.clear();
-    xfilePick.add(pickedFile!);
-
-    setState(
-      () {
-        if (xfilePick.isNotEmpty) {
-          for (var i = 0; i < xfilePick.length; i++) {
-            setState(() {
-              selectedImages.add(File(xfilePick[i].path));
-            });
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Nothing is selected')));
-        }
-      },
+  Future<void> getImagesFromGallery() async {
+    XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
     );
+
+    if (pickedFile == null) return;
+
+    Uint8List imageBytes = await pickedFile.readAsBytes();
+
+    adapter.storeImage(imageBytes);
+    init();
   }
 
   Future getImagesFromCamera() async {
-    final pickedCameraFile = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 50,
-        maxHeight: 800,
-        maxWidth: 600);
-    xfilePick.clear();
-    xfilePick.add(pickedCameraFile!);
-    setState(
-      () {
-        if (xfilePick.isNotEmpty) {
-          for (var i = 0; i < xfilePick.length; i++) {
-            setState(() {
-              selectedImages.add(File(xfilePick[i].path));
-            });
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Nothing is selected')));
-        }
-      },
+    XFile? pickedCameraFile = await picker.pickImage(
+      source: ImageSource.camera,
     );
+    Uint8List imageBytes = await pickedCameraFile!.readAsBytes();
+
+    adapter.storeImage(imageBytes);
+    init();
   }
 }

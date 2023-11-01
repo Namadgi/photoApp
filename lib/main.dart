@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_photo/images_app_view.dart';
 
-void main() {
+import 'package:hive_flutter/hive_flutter.dart';
+
+void main() async {
+  await Hive.initFlutter();
   runApp(const MyApp());
 }
 
