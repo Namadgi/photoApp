@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:themed/themed.dart';
@@ -18,6 +17,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   List<XFile> xfilePick = [];
 
   bool imageSelected = false;
+  double brighteness = 0.3;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +25,17 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
         title: const Text('Photo Improver'),
         backgroundColor: Colors.purpleAccent,
       ),
+      floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.purple,
+          onPressed: () {
+            setState(() {
+              brighteness + 0.1;
+            });
+          },
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          )),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -64,36 +75,58 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
                 // width: 300.0,
                 child: selectedImages.isEmpty
                     ? const Center(child: Text('No photos selected'))
-                    : GridView.builder(
+                    : ListView.builder(
                         itemCount: selectedImages.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2),
+                        scrollDirection: Axis.vertical,
                         itemBuilder: (BuildContext context, int index) {
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                imageSelected = !imageSelected;
-                              });
-                            },
-                            child: Center(
-                              child: kIsWeb
-                                  ? ChangeColors(
-                                      hue: 0.55,
-                                      brightness: 1,
-                                      saturation: 0.8,
-                                      child: Image.network(
-                                        selectedImages[index].path,
+                          return Column(
+                            children: [
+                              const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text(
+                                    "Before:",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15),
+                                  ),
+                                  Text(
+                                    "After:",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    height: 200,
+                                    width: 200,
+                                    child: Image.file(
+                                      selectedImages[index],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 200,
+                                    width: 200,
+                                    child: ChangeColors(
+                                      hue: 0.1,
+                                      brightness: 0.2,
+                                      saturation: 0.2,
+                                      child: Image.file(
+                                        selectedImages[index],
                                         colorBlendMode: BlendMode.clear,
                                         filterQuality: FilterQuality.high,
                                       ),
-                                    )
-                                  : Image.file(
-                                      selectedImages[index],
-                                      colorBlendMode: BlendMode.clear,
-                                      filterQuality: FilterQuality.high,
                                     ),
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           );
                         },
                       ),
@@ -106,17 +139,22 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   }
 
   Future getImages() async {
-    final pickedFile = await picker.pickMultiImage(
-        imageQuality: 80, maxHeight: 1800, maxWidth: 1600);
+    final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+        maxHeight: 800,
+        maxWidth: 600);
 
     xfilePick.clear();
-    xfilePick.addAll(pickedFile);
+    xfilePick.add(pickedFile!);
 
     setState(
       () {
         if (xfilePick.isNotEmpty) {
           for (var i = 0; i < xfilePick.length; i++) {
-            selectedImages.add(File(xfilePick[i].path));
+            setState(() {
+              selectedImages.add(File(xfilePick[i].path));
+            });
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +176,9 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
       () {
         if (xfilePick.isNotEmpty) {
           for (var i = 0; i < xfilePick.length; i++) {
-            selectedImages.add(File(xfilePick[i].path));
+            setState(() {
+              selectedImages.add(File(xfilePick[i].path));
+            });
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
