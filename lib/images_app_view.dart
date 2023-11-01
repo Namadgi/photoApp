@@ -22,10 +22,10 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  init() async {
+  void _init() async {
     List<Uint8List> imageList = await adapter.getImages();
 
     setState(() {
@@ -151,16 +151,17 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
     Uint8List imageBytes = await pickedFile.readAsBytes();
 
     adapter.storeImage(imageBytes);
-    init();
+    _init();
   }
 
-  Future getImagesFromCamera() async {
+  Future<void> getImagesFromCamera() async {
     XFile? pickedCameraFile = await picker.pickImage(
       source: ImageSource.camera,
     );
-    Uint8List imageBytes = await pickedCameraFile!.readAsBytes();
+    if (pickedCameraFile == null) return;
+    Uint8List imageBytes = await pickedCameraFile.readAsBytes();
 
     adapter.storeImage(imageBytes);
-    init();
+    _init();
   }
 }
