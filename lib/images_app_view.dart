@@ -2,8 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_photo/database_adapter.dart';
 import 'package:flutter_photo/hive_database.dart';
+import 'package:flutter_photo/utils.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:themed/themed.dart';
+import 'package:widget_zoom/widget_zoom.dart';
 
 class MultipleImageSelector extends StatefulWidget {
   const MultipleImageSelector({super.key});
@@ -18,6 +24,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
   List<XFile> xfilePick = [];
 
   DatabaseAdapter adapter = HiveService();
+  ScreenshotController screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -110,26 +117,52 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  SizedBox(
-                                    height: 200,
-                                    width: 200,
-                                    child: Image.memory(
-                                      _selectedImages[index],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 200,
-                                    width: 200,
-                                    child: ChangeColors(
-                                      hue: 0,
-                                      brightness: 0.2,
-                                      saturation: 0.2,
+                                  WidgetZoom(
+                                    heroAnimationTag: 'before',
+                                    zoomWidget: SizedBox(
+                                      height: 200,
+                                      width: 200,
                                       child: Image.memory(
                                         _selectedImages[index],
-                                        colorBlendMode: BlendMode.clear,
-                                        filterQuality: FilterQuality.high,
                                       ),
                                     ),
+                                  ),
+                                  Stack(
+                                    children: [
+                                      Screenshot(
+                                        controller: screenshotController,
+                                        child: WidgetZoom(
+                                          heroAnimationTag: 'after',
+                                          zoomWidget: SizedBox(
+                                            height: 200,
+                                            width: 200,
+                                            child: ChangeColors(
+                                              hue: 0,
+                                              brightness: 0.2,
+                                              saturation: 0.2,
+                                              child: Image.memory(
+                                                _selectedImages[index],
+                                                colorBlendMode: BlendMode.clear,
+                                                filterQuality:
+                                                    FilterQuality.high,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 0,
+                                        child: IconButton(
+                                            onPressed: () {
+                                              saveToGallery(context);
+                                            },
+                                            icon: const Icon(
+                                              Icons.download,
+                                              color: Colors.white,
+                                              size: 20,
+                                            )),
+                                      )
+                                    ],
                                   ),
                                 ],
                               ),
@@ -175,5 +208,26 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  saveToGallery(BuildContext context) {
+    screenshotController.capture().then((Uint8List? image) {
+      saveImage(image!);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Image saved to gallery.'),
+        ),
+      );
+    }).catchError((err) => print(err));
+  }
+
+  saveImage(Uint8List bytes) async {
+    final time = DateTime.now()
+        .toIso8601String()
+        .replaceAll('.', '-')
+        .replaceAll(':', '-');
+    final name = "screenshot_$time";
+    await requestPermission(Permission.storage);
+    await ImageGallerySaver.saveImage(bytes, name: name);
   }
 }
